@@ -1,132 +1,269 @@
-// ========== SNAP2PDF CORE SCRIPT ==========
-// all operations happen client-side — no upload, no storage!
+document.addEventListener('DOMContentLoaded', () => {
+    // --- UI ELEMENT SELECTORS ---
+    const loader = document.getElementById('loader');
 
-let pdfDoc = null;
-let canvas = null;
-let fabricCanvas = null;
+    // Feature: Camera to PDF
+    const video = document.getElementById('camera');
+    const captureBtn = document.getElementById('captureBtn');
 
-// ---------- CAMERA TO PDF ----------
-const video = document.getElementById('videoInput');
-const snapBtn = document.getElementById('snapBtn');
-const downloadBtn = document.getElementById('downloadBtn');
-const uploadInput = document.getElementById('uploadInput');
-const mergeBtn = document.getElementById('mergeBtn');
-const editBtn = document.getElementById('editBtn');
-const saveEditedBtn = document.getElementById('saveEditedBtn');
-const pdfPreview = document.getElementById('pdfPreview');
-const editorContainer = document.getElementById('editorContainer');
+    // Feature: Merge PDFs
+    const mergeInput = document.getElementById('mergeInput');
+    const mergeBtn = document.getElementById('mergeBtn');
 
-async function startCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-  } catch (err) {
-    alert("Camera access denied or not available!");
-  }
-}
+    // Feature: Split PDF
+    const splitInput = document.getElementById('splitInput');
+    const pageNumInput = document.getElementById('pageNum');
+    const splitBtn = document.getElementById('splitBtn');
 
-// Capture image and convert to PDF
-snapBtn.addEventListener('click', async () => {
-  startCamera();
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = video.videoWidth;
-  tempCanvas.height = video.videoHeight;
-  const ctx = tempCanvas.getContext('2d');
-  ctx.drawImage(video, 0, 0);
-  const imageData = tempCanvas.toDataURL('image/jpeg', 1.0);
+    // Feature: PDF to Text
+    const extractInput = document.getElementById('extractInput');
+    const extractBtn = document.getElementById('extractBtn');
+    const textOutput = document.getElementById('textOutput');
 
-  const pdf = new jspdf.jsPDF();
-  const imgProps = pdf.getImageProperties(imageData);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  pdf.addImage(imageData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-  pdf.save('snap2pdf.pdf');
-});
+    // Feature: Inline PDF Editor
+    const editInput = document.getElementById('editInput');
+    const editCanvas = document.getElementById('editCanvas');
+    const saveEditBtn = document.getElementById('saveEditBtn');
 
-// ---------- PDF MERGE ----------
-mergeBtn.addEventListener('click', async () => {
-  const files = uploadInput.files;
-  if (files.length < 2) {
-    alert('Select at least two PDFs to merge!');
-    return;
-  }
+    // --- GLOBAL VARIABLES ---
+    let fabricCanvas = null;
+    let currentEditFile = null;
 
-  const mergedPdf = await PDFLib.PDFDocument.create();
+    // Set PDF.js worker source
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `libs/pdf.worker.js`;
+    }
 
-  for (let i = 0; i < files.length; i++) {
-    const bytes = await files[i].arrayBuffer();
-    const pdf = await PDFLib.PDFDocument.load(bytes);
-    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-    copiedPages.forEach((p) => mergedPdf.addPage(p));
-  }
+    // --- HELPER FUNCTIONS ---
+    const showLoader = () => loader.classList.remove('hidden');
+    const hideLoader = () => loader.classList.add('hidden');
 
-  const mergedBytes = await mergedPdf.save();
-  downloadFile(mergedBytes, 'merged.pdf');
-});
+    const downloadFile = (byteArray, fileName) => {
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 
-// ---------- PDF EDITOR ----------
-editBtn.addEventListener('click', async () => {
-  const file = uploadInput.files[0];
-  if (!file) {
-    alert('Upload a PDF to edit!');
-    return;
-  }
+    // --- FEATURE IMPLEMENTATIONS ---
 
-  const pdfData = await file.arrayBuffer();
-  pdfDoc = await pdfjsLib.getDocument({ data: pdfData }).promise;
-  const page = await pdfDoc.getPage(1);
-  const viewport = page.getViewport({ scale: 1.5 });
+    // 1. Camera to PDF
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.play();
+        } catch (err) {
+            alert("Camera access denied or not available. Please allow camera permissions.");
+            console.error("Camera Error:", err);
+        }
+    }
+    startCamera(); // Initialize camera on load
 
-  const canvasEl = document.createElement('canvas');
-  const context = canvasEl.getContext('2d');
-  canvasEl.height = viewport.height;
-  canvasEl.width = viewport.width;
+    captureBtn.addEventListener('click', async () => {
+        if (!video.srcObject) {
+            alert("Camera not ready. Please grant permission and try again.");
+            return;
+        }
+        showLoader();
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/jpeg', 0.9);
 
-  await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-  editorContainer.innerHTML = '';
-  editorContainer.appendChild(canvasEl);
-
-  // Initialize fabric.js for text editing
-  fabricCanvas = new fabric.Canvas(canvasEl);
-  fabricCanvas.setWidth(canvasEl.width);
-  fabricCanvas.setHeight(canvasEl.height);
-
-  fabricCanvas.on('mouse:dblclick', function (opt) {
-    const pointer = fabricCanvas.getPointer(opt.e);
-    const text = new fabric.IText('Edit Me', {
-      left: pointer.x,
-      top: pointer.y,
-      fill: 'black',
-      fontSize: 18,
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        const imgProps = pdf.getImageProperties(imageData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imageData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('snap2pdf_capture.pdf');
+        hideLoader();
     });
-    fabricCanvas.add(text);
-  });
 
-  saveEditedBtn.style.display = 'block';
+
+    // 2. Merge PDFs
+    mergeBtn.addEventListener('click', async () => {
+        const files = mergeInput.files;
+        if (files.length < 2) {
+            alert('Please select at least two PDF files to merge.');
+            return;
+        }
+        showLoader();
+        try {
+            const mergedPdf = await PDFLib.PDFDocument.create();
+            for (const file of files) {
+                const fileBytes = await file.arrayBuffer();
+                const pdf = await PDFLib.PDFDocument.load(fileBytes);
+                const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                copiedPages.forEach(page => mergedPdf.addPage(page));
+            }
+            const mergedBytes = await mergedPdf.save();
+            downloadFile(mergedBytes, 'snap2pdf_merged.pdf');
+        } catch (error) {
+            alert('An error occurred while merging PDFs.');
+            console.error(error);
+        } finally {
+            hideLoader();
+        }
+    });
+
+    // 3. Split PDF
+    splitBtn.addEventListener('click', async () => {
+        const file = splitInput.files[0];
+        const pageNum = parseInt(pageNumInput.value, 10);
+        if (!file || isNaN(pageNum) || pageNum <= 0) {
+            alert('Please select a PDF and enter a valid page number.');
+            return;
+        }
+        showLoader();
+        try {
+            const fileBytes = await file.arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(fileBytes);
+            if (pageNum > pdf.getPageCount()) {
+                alert(`Invalid page number. The PDF has only ${pdf.getPageCount()} pages.`);
+                return;
+            }
+            const newPdf = await PDFLib.PDFDocument.create();
+            const [copiedPage] = await newPdf.copyPages(pdf, [pageNum - 1]);
+            newPdf.addPage(copiedPage);
+            const newPdfBytes = await newPdf.save();
+            downloadFile(newPdfBytes, `snap2pdf_page_${pageNum}.pdf`);
+        } catch (error) {
+            alert('An error occurred while splitting the PDF.');
+            console.error(error);
+        } finally {
+            hideLoader();
+        }
+    });
+
+    // 4. PDF to Text
+    extractBtn.addEventListener('click', async () => {
+        const file = extractInput.files[0];
+        if (!file) {
+            alert('Please select a PDF file to extract text from.');
+            return;
+        }
+        showLoader();
+        try {
+            const fileReader = new FileReader();
+            fileReader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    fullText += textContent.items.map(item => item.str).join(' ') + '\n\n';
+                }
+                textOutput.value = fullText.trim();
+            };
+            fileReader.readAsArrayBuffer(file);
+        } catch (error) {
+            alert('An error occurred during text extraction.');
+            console.error(error);
+        } finally {
+            hideLoader();
+        }
+    });
+
+    // 5. Inline PDF Editor
+    editInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        currentEditFile = file; // Store the original file for saving
+        showLoader();
+
+        const fileReader = new FileReader();
+        fileReader.onload = async function() {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 1.5 });
+            
+            // Prepare canvas
+            const canvasContext = editCanvas.getContext('2d');
+            editCanvas.height = viewport.height;
+            editCanvas.width = viewport.width;
+
+            await page.render({ canvasContext, viewport }).promise;
+
+            // Initialize Fabric.js
+            fabricCanvas = new fabric.Canvas(editCanvas, {
+                isDrawingMode: false,
+            });
+            
+            // Set PDF page as background
+            const bgImage = new fabric.Image(editCanvas, {
+                selectable: false,
+                evented: false,
+            });
+            fabricCanvas.setBackgroundImage(bgImage, fabricCanvas.renderAll.bind(fabricCanvas));
+
+            // Clear the static canvas context now that it's in Fabric
+            canvasContext.clearRect(0, 0, editCanvas.width, editCanvas.height);
+
+
+            // Double-click to add text
+            fabricCanvas.on('mouse:dblclick', function(opt) {
+                const pointer = fabricCanvas.getPointer(opt.e);
+                const text = new fabric.IText('Type here...', {
+                    left: pointer.x,
+                    top: pointer.y,
+                    fill: 'red',
+                    fontSize: 20,
+                    fontFamily: 'Arial',
+                    originX: 'center',
+                    originY: 'center',
+                });
+                fabricCanvas.add(text).setActiveObject(text);
+            });
+
+            hideLoader();
+        };
+        fileReader.readAsArrayBuffer(file);
+    });
+
+    saveEditBtn.addEventListener('click', async () => {
+        if (!fabricCanvas || !currentEditFile) {
+            alert('Please load a PDF to edit first.');
+            return;
+        }
+        showLoader();
+        try {
+            // Load the original PDF with pdf-lib
+            const pdfBytes = await currentEditFile.arrayBuffer();
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+            const firstPage = pdfDoc.getPages()[0];
+            
+            // Get the annotations from Fabric.js as a PNG image
+            const fabricImageBytes = await fetch(fabricCanvas.toDataURL({ format: 'png' })).then(res => res.arrayBuffer());
+            const embeddedImage = await pdfDoc.embedPng(fabricImageBytes);
+
+            // Overlay the annotations on the first page
+            firstPage.drawImage(embeddedImage, {
+                x: 0,
+                y: 0,
+                width: firstPage.getWidth(),
+                height: firstPage.getHeight(),
+            });
+            
+            // Save the modified PDF
+            const modifiedPdfBytes = await pdfDoc.save();
+            downloadFile(modifiedPdfBytes, 'snap2pdf_edited.pdf');
+        } catch (error) {
+            alert('Failed to save the edited PDF.');
+            console.error(error);
+        } finally {
+            hideLoader();
+        }
+    });
 });
-
-saveEditedBtn.addEventListener('click', async () => {
-  const editedImage = fabricCanvas.toDataURL({
-    format: 'jpeg',
-    quality: 1,
-  });
-
-  const pdf = new jspdf.jsPDF();
-  const imgProps = pdf.getImageProperties(editedImage);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  pdf.addImage(editedImage, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-  pdf.save('edited.pdf');
-});
-
-// ---------- HELPER ----------
-function downloadFile(byteArray, filename) {
-  const blob = new Blob([byteArray], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
