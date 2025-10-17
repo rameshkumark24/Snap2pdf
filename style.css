@@ -1,164 +1,51 @@
-/* ========= SNAP2PDF - STYLE ========= */
-/* All pure CSS, mobile responsive, no framework */
-
-:root {
-  --primary-color: #5a189a;
-  --primary-hover: #7b2cbf;
-  --text-color: #222;
-  --bg-color: #f8f8ff;
-  --border-radius: 12px;
-  --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
+/* Custom styles to complement TailwindCSS */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 
 body {
-  background: var(--bg-color);
-  color: var(--text-color);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+  font-family: 'Inter', sans-serif;
 }
 
-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 25px;
-  gap: 10px;
-  text-align: center;
+/* Feature Card Styling */
+.feature-card {
+  @apply bg-white rounded-2xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
 }
 
-header img {
+.card-title {
+  @apply font-bold text-xl mb-1 text-purple-700;
+}
+
+.card-description {
+  @apply text-sm text-gray-500 mb-4;
+}
+
+/* Button & Input Styling */
+.btn-primary {
+  @apply bg-purple-600 text-white font-semibold px-4 py-3 rounded-lg w-full transition-all duration-300 transform hover:bg-purple-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50;
+}
+
+.file-input {
+  @apply w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer;
+}
+
+.text-input {
+  @apply border border-gray-300 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400;
+}
+
+/* Loader Animation */
+#loader {
+  transition: opacity 0.3s ease;
+}
+
+.loader-spinner {
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 5px solid #a855f7; /* Purple color */
   width: 50px;
   height: 50px;
-  border-radius: 8px;
-  object-fit: cover;
+  animation: spin 1s linear infinite;
 }
 
-header h1 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: var(--primary-color);
-  letter-spacing: 0.5px;
-}
-
-/* ===== MAIN CONTAINER ===== */
-.container {
-  width: 100%;
-  max-width: 600px;
-  background: #fff;
-  padding: 20px;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-
-section {
-  margin-bottom: 30px;
-}
-
-h2 {
-  margin-bottom: 12px;
-  color: var(--primary-color);
-  font-size: 1.3rem;
-}
-
-video {
-  width: 100%;
-  border-radius: var(--border-radius);
-  border: 2px solid var(--primary-color);
-  margin-bottom: 10px;
-}
-
-/* ===== BUTTONS ===== */
-button {
-  background: var(--primary-color);
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: 1rem;
-  transition: 0.2s ease;
-  margin: 6px 4px;
-}
-
-button:hover {
-  background: var(--primary-hover);
-  transform: scale(1.03);
-}
-
-input[type="file"] {
-  margin-top: 8px;
-  border: 1px dashed var(--primary-color);
-  border-radius: var(--border-radius);
-  padding: 10px;
-  width: 100%;
-  cursor: pointer;
-  background: #fafafa;
-  color: #444;
-  transition: 0.2s;
-}
-
-input[type="file"]:hover {
-  background: #f0e6ff;
-}
-
-/* ===== PDF Preview and Editor ===== */
-#pdfPreview {
-  margin-top: 15px;
-  display: block;
-  width: 100%;
-  border: 1px solid #ddd;
-  border-radius: var(--border-radius);
-}
-
-#editorContainer {
-  margin-top: 20px;
-  border: 2px dashed var(--primary-color);
-  border-radius: var(--border-radius);
-  padding: 10px;
-  background: #fdfcff;
-}
-
-#saveEditedBtn {
-  display: none;
-  background: #007bff;
-}
-
-footer {
-  text-align: center;
-  margin-top: 30px;
-  color: #777;
-  font-size: 0.9rem;
-}
-
-footer a {
-  color: var(--primary-color);
-  text-decoration: none;
-}
-
-footer a:hover {
-  text-decoration: underline;
-}
-
-/* ===== MOBILE RESPONSIVE ===== */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 1.5rem;
-  }
-  button {
-    width: 100%;
-  }
-  video {
-    height: auto;
-  }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
