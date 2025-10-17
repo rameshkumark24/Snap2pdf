@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- GLOBAL VARIABLES ---
     let fabricCanvas = null;
     let currentEditFile = null;
+    let cameraStream = null; // To hold the camera stream
 
     // Set PDF.js worker source
     if (window.pdfjsLib) {
@@ -52,28 +53,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FEATURE IMPLEMENTATIONS ---
 
-    // 1. Camera to PDF
+    // 1. Camera to PDF (Updated Logic)
     async function startCamera() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
-            video.play();
+            cameraStream = stream;
+            return true;
         } catch (err) {
-            alert("Camera access denied or not available. Please allow camera permissions.");
+            alert("Camera access denied. Please allow camera permissions in your browser settings.");
             console.error("Camera Error:", err);
+            return false;
         }
     }
-    startCamera(); // Initialize camera on load
 
     captureBtn.addEventListener('click', async () => {
-        if (!video.srcObject) {
-            alert("Camera not ready. Please grant permission and try again.");
-            return;
+        // Step 1: If camera is off, start it.
+        if (!cameraStream || !cameraStream.active) {
+            showLoader();
+            const success = await startCamera();
+            hideLoader();
+            if (success) {
+                captureBtn.textContent = 'Capture & Convert';
+                // Optional: change color to indicate active state
+                captureBtn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                captureBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+            }
+            return; // Exit after starting camera, wait for next click to capture
         }
+
+        // Step 2: If camera is on, capture the image.
         showLoader();
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+        
+        if (canvas.width === 0 || canvas.height === 0) {
+            hideLoader();
+            alert("Camera is not ready. Please wait a moment and try again.");
+            return;
+        }
+        
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = canvas.toDataURL('image/jpeg', 0.9);
@@ -85,6 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         pdf.addImage(imageData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         pdf.save('snap2pdf_capture.pdf');
+        
+        // Stop the camera and reset the button after capturing
+        cameraStream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        cameraStream = null;
+        captureBtn.textContent = 'Start Camera';
+        captureBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        captureBtn.classList.add('bg-purple-600', 'hover:bg-purple-700');
         hideLoader();
     });
 
