@@ -1,0 +1,21 @@
+{
+  "name": "Snap2PDF",
+  "short_name": "Snap2PDF",
+  "description": "Convert camera images and files to PDF instantly — 100% offline, no sign-in, no storage.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f8f8ff",
+  "theme_color": "#5a189a",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
