@@ -1,19 +1,19 @@
 {
-  "name": "Snap2PDF",
+  "name": "Snap2PDF - Offline PDF Tools",
   "short_name": "Snap2PDF",
-  "description": "Convert camera images and files to PDF instantly — 100% offline, no sign-in, no storage.",
-  "start_url": "index.html",
+  "description": "A free, offline, privacy-first web app for all your PDF needs: merge, split, edit, and convert from camera.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f8f8ff",
-  "theme_color": "#5a189a",
+  "background_color": "#f8f9fb",
+  "theme_color": "#7c3aed",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "assets/logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "assets/logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }
