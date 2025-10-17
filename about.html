@@ -4,80 +4,60 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About | Snap2PDF</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="https://ibb.co/svTbFtG6" type="image/png" />
+
+  <link rel="icon" href="assets/logo.png" type="image/png">
 </head>
-<body>
-  <header>
-    <img src="https://i.ibb.co/svTbFtG6/logo.png" alt="Snap2PDF Logo" />
-    <h1>Snap2PDF</h1>
-  </header>
+<body class="bg-gray-50 text-gray-800">
 
-  <div class="container">
-    <section>
-      <h2>About Snap2PDF</h2>
-      <p>
-        <strong>Snap2PDF</strong> is a free, lightweight web app that lets you 
-        instantly capture photos from your camera or upload files, 
-        and turn them into professional PDFs — right in your browser.  
-        No sign-in. No upload. No storage. Just <em>work → download → done.</em>
-      </p>
-      <br />
-      <p>
-        Everything runs 100% locally on your device using open-source JavaScript libraries 
-        like <strong>jsPDF</strong>, <strong>pdf-lib</strong>, and <strong>fabric.js</strong>.  
-        This means your data never leaves your computer — ensuring 
-        total <strong>privacy and security</strong>.
-      </p>
-    </section>
+  <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+    <header class="flex items-center space-x-3 mb-10">
+      <img src="assets/logo.png" alt="Snap2PDF Logo" class="w-12 h-12 rounded-lg shadow-md">
+      <h1 class="text-2xl md:text-4xl font-bold text-purple-700 tracking-tight">Snap2PDF</h1>
+    </header>
 
-    <section>
-      <h2>Features</h2>
-      <ul style="text-align:left; margin-left:20px;">
-        <li>📸 Convert camera images directly to PDF</li>
-        <li>📂 Merge multiple PDFs instantly</li>
-        <li>📝 Edit and add text to existing PDFs</li>
-        <li>🔒 100% offline and secure (no data upload)</li>
-        <li>⚡ Fast and mobile-friendly</li>
-      </ul>
-    </section>
+    <div class="bg-white rounded-2xl shadow-lg p-8 md:p-10 space-y-8">
+      
+      <section>
+        <h2 class="text-2xl font-bold text-purple-700 mb-3">About Snap2PDF</h2>
+        <p class="text-gray-600 leading-relaxed">
+          <strong>Snap2PDF</strong> is a free, privacy-focused web app that lets you perform essential PDF tasks right in your browser. Capture photos, merge files, extract text, and more—all without ever uploading your data to a server. Everything runs 100% locally on your device.
+        </p>
+      </section>
 
-    <section>
-      <h2>Our Vision</h2>
-      <p>
-        We built Snap2PDF to make document conversion and editing 
-        <strong>simple, private, and free forever</strong>.  
-        While big tools hide features behind sign-ups or subscriptions,  
-        Snap2PDF gives you a <strong>zero-login, zero-cost</strong> experience.
-      </p>
-    </section>
+      <section>
+        <h2 class="text-2xl font-bold text-purple-700 mb-3">Core Features</h2>
+        <ul class="list-disc list-inside space-y-2 text-gray-600">
+          <li><strong>📸 Camera to PDF:</strong> Instantly convert camera snapshots to PDF.</li>
+          <li><strong>➕ Merge PDFs:</strong> Combine multiple PDF documents into one.</li>
+          <li><strong>✂️ Split PDF:</strong> Extract a specific page from any PDF file.</li>
+          <li><strong>📄 PDF to Text:</strong> Pull all text content from a PDF for easy copying.</li>
+          <li><strong>📝 Inline Editor:</strong> Add text annotations directly onto a PDF page.</li>
+          <li><strong>🔒 100% Offline & Secure:</strong> Your files are never uploaded, ensuring total privacy.</li>
+        </ul>
+      </section>
 
-    <section>
-      <h2>Credits</h2>
-      <p>
-        Developed with ❤️ by an independent creator using open-source tools.  
-        Libraries used: jsPDF, pdf-lib, pdf.js, and fabric.js.
-      </p>
-      <p>
-        Want to contribute or suggest new features?  
-        Drop your ideas on our <a href="#" target="_blank">GitHub page</a>.
-      </p>
-    </section>
+      <section>
+        <h2 class="text-2xl font-bold text-purple-700 mb-3">Our Vision</h2>
+        <p class="text-gray-600 leading-relaxed">
+          We believe powerful tools should be simple, accessible, and private. Snap2PDF was built to provide a zero-login, zero-cost, and zero-compromise experience for your daily document needs. We rely on powerful open-source libraries like <strong>jsPDF</strong>, <strong>pdf-lib</strong>, and <strong>Fabric.js</strong>.
+        </p>
+      </section>
 
-    <div style="margin-top:30px;">
-      <a href="index.html">
-        <button>⬅ Back to Home</button>
-      </a>
+      <div class="pt-6 border-t border-gray-200">
+        <a href="index.html" class="inline-block bg-purple-600 text-white font-semibold px-6 py-3 rounded-lg transition-transform transform hover:scale-105">
+          ← Back to Home
+        </a>
+      </div>
+
     </div>
-  </div>
 
-  <footer>
-    <p>
-      © 2025 Snap2PDF — Built for privacy-first PDF editing.  
-      <br />
-      <a href="about.html">About</a> | 
-      <a href="https://github.com/">GitHub</a>
-    </p>
-  </footer>
+    <footer class="mt-12 text-center text-sm text-gray-500">
+      <p>© 2025 Snap2PDF — Privacy-First PDF Tools</p>
+    </footer>
+
+  </div>
 </body>
 </html>
